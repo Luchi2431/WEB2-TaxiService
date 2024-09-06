@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DataAccessLayer.Migrations
 {
+    //ajde tebra
     public partial class MyMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
