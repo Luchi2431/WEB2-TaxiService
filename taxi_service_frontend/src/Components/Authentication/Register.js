@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-//import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import { useNavigate } from 'react-router-dom';
+import {GoogleOAuthProvider,GoogleLogin} from '@react-oauth/google';
 //import './Register.css';
 
 const Register = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         username: '',
         email: '',
@@ -57,6 +59,7 @@ const Register = () => {
             });
             console.log("Odgovor sa servera:", response.data);
             alert('Registracija uspešna! Molimo sačekajte potvrdu od administratora.');
+            navigate('/dashboard')
         } catch (error) {
             if (error.response) {
                 console.error("Greška prilikom registracije", error.response.data);
@@ -67,18 +70,26 @@ const Register = () => {
     };
 
     const handleGoogleLoginSuccess = async (credentialResponse) => {
+
+        const selectedOption = document.querySelector('input[name="accType"]:checked').value;
+    
         try {
-            const response = await axios.post('YOUR_API_ENDPOINT/auth/google', {
-                token: credentialResponse.credential,
-            });
+            const response = await axios.post('https://localhost:44310/api/Authentication/google-login', 
+                {
+                    token: credentialResponse.credential, // Ovdje šalješ idToken
+                    userType: selectedOption // Ovdje šalješ userType
+                }, 
+                {
+                    headers: {
+                        'Content-Type': 'application/json', 
+                    },
+                });
             console.log("Korisnik prijavljen putem Google-a:", response.data);
-            // Ovde možete obraditi dodatnu logiku, kao što je preusmeravanje korisnika na dashboard
+            navigate('/dashboard');
         } catch (error) {
-            console.error("Greška prilikom prijave putem Google-a", error);
+            console.error("Greška prilikom prijave putem Google-a", error.response ? error.response.data : error);
         }
     };
-
-
 
     return (
         <div className="register-container">
@@ -128,14 +139,27 @@ const Register = () => {
                     <label>Slika korisnika:</label>
                     <input type="file" name="image" onChange={handleImageChange} required />
                 </div>
+
+
                 <button type="submit">Registruj se</button>
             </form>
-            {/* <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
+
+
+     <hr/>
+     <br/>
+
+     <div id="accType" >
+        <input type="radio" value="User" name="accType" defaultChecked /> Korisnik
+        <input type="radio" value="Driver" name="accType" /> Vozac
+     </div>
+
+     {/* Google Login Integration */}
+     <GoogleOAuthProvider clientId="889373334973-q56o6jqdhcip6lo9ug28pnq20jk7or29.apps.googleusercontent.com">
                 <GoogleLogin
                     onSuccess={handleGoogleLoginSuccess}
                     onError={() => console.log('Greška prilikom prijave putem Google-a')}
                 />
-            </GoogleOAuthProvider> */}
+            </GoogleOAuthProvider>
         </div>
     );
 };

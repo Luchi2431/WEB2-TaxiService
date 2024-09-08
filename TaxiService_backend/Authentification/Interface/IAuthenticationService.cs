@@ -1,4 +1,5 @@
-﻿using DataAccessLayer.DTO;
+﻿using Common;
+using DataAccessLayer.DTO;
 using DataAccessLayer.Models;
 using Microsoft.AspNetCore.Http;
 using System;
@@ -15,5 +16,11 @@ namespace Authentication.Interface
         // Ostale metode kao što je Login, etc.
 
         Task<string> SaveImageAsync(IFormFile image);
+
+        Task<User> RegisterOrLoginWithGoogleAsync(string idToken,UserType userType);
+
+        Task<UserDTO> GetUserProfileAsync(int userId);
+
+        Task<ProfileDTO> LoginUser(LoginDTO loginDTO);
     }
 }

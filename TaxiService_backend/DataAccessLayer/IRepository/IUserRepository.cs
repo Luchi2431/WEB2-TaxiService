@@ -11,5 +11,9 @@ namespace DataAccessLayer.IRepository
     public interface IUserRepository
     {
         User AddUser(UserDTO newUser);
+
+        Task<User> GetUserByIdAsync(int userId);
+
+        User FindUser(string email);
     }
 }

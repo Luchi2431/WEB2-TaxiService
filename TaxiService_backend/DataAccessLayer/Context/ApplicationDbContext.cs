@@ -1,10 +1,5 @@
 ﻿using DataAccessLayer.Models;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DataAccessLayer.Context
 {
@@ -21,6 +16,11 @@ namespace DataAccessLayer.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Ride>()
+                 .Property(r => r.EstimatedPrice)
+                 .HasColumnType("decimal(18,2)"); // 18 je ukupna preciznost, 2 je broj decimalnih mesta
+
+            base.OnModelCreating(modelBuilder);
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
         }

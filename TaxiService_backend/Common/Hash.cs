@@ -10,7 +10,7 @@ namespace Common
         {
             var crypt = new SHA256Managed();
             string hash = String.Empty;
-            byte[] crypto = crypt.ComputeHash(Encoding.ASCII.GetBytes(toHash));
+            byte[] crypto = crypt.ComputeHash(Encoding.UTF8.GetBytes(toHash));
             foreach (byte theByte in crypto)
             {
                 hash += theByte.ToString("x2");

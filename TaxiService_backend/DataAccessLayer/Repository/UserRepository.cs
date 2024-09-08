@@ -31,5 +31,17 @@ namespace DataAccessLayer.Repository
             return _mapper.Map<User>(user); //Dobra je praksa vratiti kreirani objekat nazad,
                                                      //narocito ako se auto generise ID
         }
+
+        public async Task<User> GetUserByIdAsync(int userId)
+        {
+            return await _db.Users.FindAsync(userId);
+        }
+
+        public User FindUser(string email)
+        {
+            return _db.Users.FirstOrDefault(user => user.Email == email);
+
+            
+        }
     }
 }

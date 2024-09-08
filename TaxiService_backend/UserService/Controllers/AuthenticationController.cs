@@ -1,5 +1,7 @@
 ﻿using Authentication.Interface;
+using Common;
 using DataAccessLayer.DTO;
+using DataAccessLayer.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -34,5 +36,74 @@ namespace UserService.Controllers
                 return BadRequest(new { Message = ex.Message });
             }
         }
+
+        [HttpPost("google-login")]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginDTO googleLoginDTO)
+        {
+            try
+            {
+                if (googleLoginDTO.UserType == "User")
+                {
+                    var user = await _authenticationService.RegisterOrLoginWithGoogleAsync(googleLoginDTO.Token, UserType.User);
+                }
+                else if (googleLoginDTO.UserType == "Driver")
+                {
+                    var user = await _authenticationService.RegisterOrLoginWithGoogleAsync(googleLoginDTO.Token, UserType.Driver);
+                }
+                return Ok(new { Message = "Google login uspešan" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDTO LoginDTO)
+        {
+            try
+            {
+                ProfileDTO response = await _authenticationService.LoginUser(LoginDTO);
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message, StackTrace = ex.StackTrace });
+            }
+        }
+
+
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProfile()
+        {
+            try
+            {
+                // Dobij ID korisnika iz Claims
+                var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "sub"); // Proveri da li koristiš "id"
+                if (userIdClaim == null)
+                {
+                    return Unauthorized(new { Message = "Korisnik nije prijavljen." });
+                }
+
+                // Pretvori Claim value u int
+                var userId = int.Parse(userIdClaim.Value);
+
+                // Pretpostavljam da tvoj AuthenticationService ima metodu GetUserProfileAsync
+                var profile = await _authenticationService.GetUserProfileAsync(userId);
+
+                if (profile == null)
+                {
+                    return NotFound(new { Message = "Korisnik nije pronađen." });
+                }
+
+                return Ok(profile);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
     }
+
 }
