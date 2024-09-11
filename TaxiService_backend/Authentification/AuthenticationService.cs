@@ -80,6 +80,7 @@ namespace Authentication
             var imagePath = await SaveImageAsync(image);
 
 
+
             // Kreiranje korisnika
             var user = new UserDTO
             {
@@ -92,7 +93,7 @@ namespace Authentication
                 Address = registerDto.Address,
                 UserTypes = registerDto.UserTypes,
                 ProfilePicture = imagePath, // Putanja do slike
-                IsVerified = false
+                IsVerified = VerifiedStatus.InProgress
             };
 
             return _userRepository.AddUser(user);
@@ -145,16 +146,106 @@ namespace Authentication
             }
         }
 
-        public async Task<UserDTO> GetUserProfileAsync(int userId) // Menjamo tip na int
+        public async Task<ProfileDTO> LoginWithGoogleAsync(string token)
         {
-            var user = await _userRepository.GetUserByIdAsync(userId); // Prilagodi ovaj deo prema tvojoj bazi podataka
+            try
+            {
+                // Verifikuj Google token
+                var validPayload = await GoogleJsonWebSignature.ValidateAsync(token);
 
+                // Preuzmi podatke korisnika iz tokena
+                var email = validPayload.Email;
+                var fullName = validPayload.Name;
+                var surname = validPayload.FamilyName;
+                var firstname = validPayload.GivenName;
+
+                User u = _userRepository.FindUser(email);
+                if (u != null)
+                {
+                    List<Claim> claims = new List<Claim>();
+                    if (u.UserTypes == UserType.User)
+                        claims.Add(new Claim("UserType", "User"));
+                    if (u.UserTypes == UserType.Driver)
+                        claims.Add(new Claim("UserType", "Driver"));
+                    if (u.UserTypes == UserType.Admin)
+                        claims.Add(new Claim("UserType", "Admin"));
+
+
+                    SymmetricSecurityKey secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
+
+                    var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+
+                    var tokeOptions = new JwtSecurityToken(
+                        issuer: "http://localhost:44310",
+                        claims: claims,
+                        expires: DateTime.Now.AddMinutes(20),
+                        signingCredentials: signinCredentials
+                    );
+                    string tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
+
+
+                    ProfileDTO p = _mapper.Map<ProfileDTO>(u);
+                    p.Token = tokenString;
+                    p.UserType = u.UserTypes;
+                    p.ProfilePicture = u.ProfilePicture;
+                    
+                    return p;
+                }
+                else
+                {
+                    throw new Exception("Korisnik nije pronađen");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Nevalidan Google token ili korisnik ne može biti kreiran.");
+            }
+        }
+
+
+        public async Task<ProfileDTO> UpdateUserProfileAsync(ProfileDTO profileDTO, IFormFile? profilePicture)
+        {
+            // Pronalaženje korisnika na osnovu ID-ja
+            var user = await _userRepository.GetUserByIdAsync(profileDTO.Id);
+
+            if (user == null)
+            {
+                throw new Exception("Korisnik nije pronađen");
+            }
+
+
+            user.Username = profileDTO.Username;
+            user.Email = profileDTO.Email;
+            user.FirstName = profileDTO.FirstName;
+            user.LastName = profileDTO.LastName;
+            user.DateOfBirth = profileDTO.DateOfBirth;
+            user.Address = profileDTO.Address;
+
+
+
+            // Ako je slika profilne slike prisutna, ažurirajte je
+            if (profilePicture != null)
+            {
+                var imagePath = await SaveImageAsync(profilePicture);
+                user.ProfilePicture = imagePath;
+            }
+
+           return  _userRepository.UpdateUserAsync(user);
+
+        }
+
+
+
+        public async Task<ProfileDTO> GetUserProfileAsync(int userId) 
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            Console.WriteLine(user);
             if (user == null)
             {
                 return null;
             }
 
-            return new UserDTO
+            return new ProfileDTO
             {
                 Id = user.Id,
                 Username = user.Username,
@@ -163,8 +254,8 @@ namespace Authentication
                 LastName = user.LastName,
                 DateOfBirth = user.DateOfBirth,
                 Address = user.Address,
-                ProfilePicture = user.ProfilePicture, // koristi ProfilePicture kao ImageUrl
-                UserTypes = user.UserTypes,
+                ProfilePicture = user.ProfilePicture,
+                UserType = user.UserTypes,
                 IsVerified = user.IsVerified
             };
         }
@@ -187,8 +278,8 @@ namespace Authentication
                         if (u.UserTypes == UserType.Admin)
                             claims.Add(new Claim("UserType", "Admin"));
 
-                        SymmetricSecurityKey secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
 
+                        SymmetricSecurityKey secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
 
                         var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
 
@@ -199,6 +290,7 @@ namespace Authentication
                             signingCredentials: signinCredentials
                         );
                         string tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
+
 
                         ProfileDTO p = _mapper.Map<ProfileDTO>(u);
                         p.Token = tokenString;

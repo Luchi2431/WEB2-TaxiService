@@ -19,6 +19,6 @@ namespace DataAccessLayer.Models
         public string Address { get; set; }
         public UserType UserTypes { get; set; } // Može biti "Administrator", "Korisnik", ili "Vozač"
         public string ProfilePicture { get; set; }
-        public bool IsVerified { get; set; }
+        public VerifiedStatus IsVerified { get; set; }
     }
 }

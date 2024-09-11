@@ -74,7 +74,7 @@ const Register = () => {
         const selectedOption = document.querySelector('input[name="accType"]:checked').value;
     
         try {
-            const response = await axios.post('https://localhost:44310/api/Authentication/google-login', 
+            const response = await axios.post('https://localhost:44310/api/Authentication/googleRegister', 
                 {
                     token: credentialResponse.credential, // Ovdje šalješ idToken
                     userType: selectedOption // Ovdje šalješ userType
@@ -84,10 +84,10 @@ const Register = () => {
                         'Content-Type': 'application/json', 
                     },
                 });
-            console.log("Korisnik prijavljen putem Google-a:", response.data);
+            console.log("Korisnik registrovan putem Google-a:", response.data);
             navigate('/dashboard');
         } catch (error) {
-            console.error("Greška prilikom prijave putem Google-a", error.response ? error.response.data : error);
+            console.error("Greška prilikom registracije putem Google-a", error.response ? error.response.data : error);
         }
     };
 
@@ -157,7 +157,7 @@ const Register = () => {
      <GoogleOAuthProvider clientId="889373334973-q56o6jqdhcip6lo9ug28pnq20jk7or29.apps.googleusercontent.com">
                 <GoogleLogin
                     onSuccess={handleGoogleLoginSuccess}
-                    onError={() => console.log('Greška prilikom prijave putem Google-a')}
+                    onError={() => console.log('Greška prilikom registracije putem Google-a')}
                 />
             </GoogleOAuthProvider>
         </div>

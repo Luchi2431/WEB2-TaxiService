@@ -9,16 +9,16 @@ namespace DataAccessLayer.DTO
 {
     public class ProfileDTO
     {
-        public long Id { get; set; }
-        public string UserName { get; set; }
+        public int Id { get; set; }
+        public string Username { get; set; }
         public string Email { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public DateTime BirthDate { get; set; }
+        public DateTime DateOfBirth { get; set; }
         public string Address { get; set; }
         public string Token { get; set; }
         public UserType UserType { get; set; }
-        public bool IsVerified { get; set; }
+        public VerifiedStatus IsVerified { get; set; }
         public string ProfilePicture { get; set; }
 
     }

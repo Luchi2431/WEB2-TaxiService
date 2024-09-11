@@ -37,7 +37,7 @@ namespace UserService.Controllers
             }
         }
 
-        [HttpPost("google-login")]
+        [HttpPost("googleRegister")]
         public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginDTO googleLoginDTO)
         {
             try
@@ -73,37 +73,60 @@ namespace UserService.Controllers
             }
         }
 
-
-        [HttpGet("profile")]
-        public async Task<IActionResult> GetProfile()
+        [HttpPost("googleLogin")]
+        public async Task<IActionResult> GoogleLogin([FromBody] string token)
         {
             try
             {
-                // Dobij ID korisnika iz Claims
-                var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "sub"); // Proveri da li koristiš "id"
-                if (userIdClaim == null)
-                {
-                    return Unauthorized(new { Message = "Korisnik nije prijavljen." });
-                }
+                ProfileDTO response = await _authenticationService.LoginWithGoogleAsync(token);
 
-                // Pretvori Claim value u int
-                var userId = int.Parse(userIdClaim.Value);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message, StackTrace = ex.StackTrace });
+            }
+        }
 
-                // Pretpostavljam da tvoj AuthenticationService ima metodu GetUserProfileAsync
-                var profile = await _authenticationService.GetUserProfileAsync(userId);
 
-                if (profile == null)
-                {
-                    return NotFound(new { Message = "Korisnik nije pronađen." });
-                }
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProfile(int id)
+        {
+            try
+            {
+                ProfileDTO response =  await _authenticationService.GetUserProfileAsync(id);
+                return Ok(response);
 
-                return Ok(profile);
             }
             catch (Exception ex)
             {
                 return BadRequest(new { Message = ex.Message });
             }
         }
+
+
+        [HttpPut("profileUpdate")]
+        public async Task<IActionResult> ProfileUpdate([FromForm] ProfileDTO profileDTO,IFormFile? profilePicture = null)
+        {
+            try
+            {
+              
+
+                var updatedUser = await _authenticationService.UpdateUserProfileAsync(profileDTO, profilePicture);
+
+
+                return Ok(new { Message = "Profil uspešno ažuriran", UpdatedUser = updatedUser });
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+
+
+
     }
 
 }

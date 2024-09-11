@@ -19,8 +19,12 @@ namespace Authentication.Interface
 
         Task<User> RegisterOrLoginWithGoogleAsync(string idToken,UserType userType);
 
-        Task<UserDTO> GetUserProfileAsync(int userId);
+        Task<ProfileDTO> GetUserProfileAsync(int userId);
+
+        Task<ProfileDTO> UpdateUserProfileAsync(ProfileDTO profileDTO, IFormFile? profilePicture);
 
         Task<ProfileDTO> LoginUser(LoginDTO loginDTO);
+
+        Task<ProfileDTO> LoginWithGoogleAsync(string token);
     }
 }

@@ -14,6 +14,8 @@ namespace DataAccessLayer.IRepository
 
         Task<User> GetUserByIdAsync(int userId);
 
+        ProfileDTO UpdateUserAsync(User newUser);
+
         User FindUser(string email);
     }
 }

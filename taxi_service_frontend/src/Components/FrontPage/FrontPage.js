@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { GoogleAuthProvider } from 'firebase/auth/web-extension';
+import { GoogleOAuthProvider,GoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import User from '../../Models/User';
 import Authentication from '../../Contexts/Authentication';
@@ -21,14 +21,18 @@ const FrontPage = () => {
         console.log('Slanje podataka:', { Email: email, Password: password });
         try {
             
-            const response = await axios.post("https://localhost:44310/api/Authentication/login", JSON.stringify({ Email: 'da@da', Password: 'da' }), {
+            const response = await axios.post("https://localhost:44310/api/Authentication/login", JSON.stringify({ Email: email , Password: password }), {
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
+            console.log('Response from server:', response.data); // Loguj ceo odgov
             const user = new User(response.data);
             authCtx.onLogin(user);
             navigate('/dashboard')
+            alert(`Logovani korisnik je ${user.Email}`);
+            
+
           } catch (error) {
             alert(error.response.data.detail);
         }
@@ -40,6 +44,26 @@ const FrontPage = () => {
     const handleRegister = () => {
         navigate('/register'); // Navigacija na stranicu za registraciju
     };
+    
+    const handleGoogleLoginSuccess = async (credentialResponse) => {
+
+        try {
+            const response = await axios.post('https://localhost:44310/api/Authentication/googleLogin', JSON.stringify(credentialResponse.credential), 
+                {
+                    headers: {
+                        'Content-Type': 'application/json', 
+                    },
+                });
+            const user = new User(response.data);
+            authCtx.onLogin(user);
+            navigate('/dashboard');
+            alert(`Logovani korisnik je ${user.Email}`);
+        } catch (error) {
+            console.error("Greška prilikom prijave putem Google-a", error.response ? error.response.data : error);
+        }
+    };
+
+
 
     return (
         <div className="login-container">
@@ -69,7 +93,23 @@ const FrontPage = () => {
             <button onClick={handleRegister} className="register-button">
                 Registracija
             </button>
+
+            {/* Google Login Integration */}
+        <GoogleOAuthProvider clientId="889373334973-q56o6jqdhcip6lo9ug28pnq20jk7or29.apps.googleusercontent.com">
+            <GoogleLogin
+                onSuccess={handleGoogleLoginSuccess}
+                onError={() => console.log('Greška prilikom prijave putem Google-a')}
+            />
+        </GoogleOAuthProvider>
+
+
         </div>
+
+    
+
+    
+    
+
     );
 };
 

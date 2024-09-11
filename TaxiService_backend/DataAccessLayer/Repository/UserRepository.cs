@@ -3,6 +3,7 @@ using DataAccessLayer.Context;
 using DataAccessLayer.DTO;
 using DataAccessLayer.IRepository;
 using DataAccessLayer.Models;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,11 +38,21 @@ namespace DataAccessLayer.Repository
             return await _db.Users.FindAsync(userId);
         }
 
+        public ProfileDTO UpdateUserAsync(User newUser)
+        {
+           
+            _db.Users.Update(newUser);
+            _db.SaveChanges();
+
+            return _mapper.Map<ProfileDTO>(newUser);
+
+        }
+
+
         public User FindUser(string email)
         {
             return _db.Users.FirstOrDefault(user => user.Email == email);
-
-            
+   
         }
     }
 }

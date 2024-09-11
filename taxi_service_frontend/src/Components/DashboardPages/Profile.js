@@ -1,9 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Authentication from '../../Contexts/Authentication';
+
+
 
 const Profile = () => {
     const [userData, setUserData] = useState(null);
+    const ctx = useContext(Authentication);
     const [formData, setFormData] = useState({
         username: '',
         email: '',
@@ -11,23 +15,45 @@ const Profile = () => {
         lastName: '',
         dateOfBirth: '',
         address: '',
-        profilePicture: null,
+        profilePicture: '',
     });
     const navigate = useNavigate();
 
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                const response = await axios.get('https://localhost:44310/api/Authentication/profile'); // Zameniti sa tačnim URL-om
-                setUserData(response.data);
-                setFormData(response.data); // Inicijalizuj formData sa dobijenim korisničkim podacima
+                if (!ctx.isLoggedIn || !ctx.user || !ctx.user.Id) {
+                    console.error("Korisnik nije prijavljen ili korisnički ID nije dostupan");
+                    return;
+                }
+                const response = await axios.get('https://localhost:44310/api/Authentication/profile?id='+ctx.user.Id, {
+                    headers: {
+                        Authorization: `Bearer ${ctx.user.Token}`
+                    }
+                });
+                
+    
+                const user = response.data;
+                console.log(user);
+                console.log('Datum rođenja:', user.dateOfBirth);
+    
+                // Proveri i formatiraj datum
+                const formattedDate = user.dateOfBirth ? user.dateOfBirth.split('T')[0] : '';
+    
+                setUserData(user);
+                setFormData({
+                    ...user,
+                    dateOfBirth: formattedDate, 
+                    profilePicture: user.profilePicture || '',
+                });
             } catch (error) {
                 console.error("Greška prilikom dobijanja korisničkih podataka", error.response ? error.response.data : error);
             }
         };
-
+    
         fetchUserData();
-    }, []);
+    }, [ctx.isLoggedIn, ctx.user]);
+    
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -53,8 +79,10 @@ const Profile = () => {
             updatedFormData.append(key, formData[key]);
         }
 
+        console.log([...updatedFormData]);
+
         try {
-            await axios.put('https://localhost:44310/api/Authentication/profile', updatedFormData, {
+            await axios.put('https://localhost:44310/api/Authentication/profileUpdate', updatedFormData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -63,6 +91,7 @@ const Profile = () => {
             navigate('/dashboard'); // Preusmeri korisnika nakon uspešnog ažuriranja
         } catch (error) {
             console.error("Greška prilikom ažuriranja profila", error.response ? error.response.data : error);
+            alert("Greška prilikom ažuriranja profila. Pokušajte ponovo.");
         }
     };
 
@@ -76,31 +105,31 @@ const Profile = () => {
             <form onSubmit={handleSubmit}>
                 <div className="form-group">
                     <label>Korisničko ime:</label>
-                    <input type="text" name="username" value={formData.username} onChange={handleChange} required />
+                    <input type="text" name="username" value={formData.username || ''} onChange={handleChange} required />
                 </div>
                 <div className="form-group">
                     <label>Email:</label>
-                    <input type="email" name="email" value={formData.email} onChange={handleChange} required />
+                    <input type="email" name="email" value={formData.email || ''} onChange={handleChange} required />
                 </div>
                 <div className="form-group">
                     <label>Ime:</label>
-                    <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} required />
+                    <input type="text" name="firstName" value={formData.firstName || ''} onChange={handleChange} required />
                 </div>
                 <div className="form-group">
                     <label>Prezime:</label>
-                    <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} required />
+                    <input type="text" name="lastName" value={formData.lastName || ''} onChange={handleChange} required />
                 </div>
                 <div className="form-group">
                     <label>Datum rođenja:</label>
-                    <input type="date" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleChange} required />
+                    <input type="date" name="dateOfBirth" value={formData.dateOfBirth || ''} onChange={handleChange} required />
                 </div>
                 <div className="form-group">
                     <label>Adresa:</label>
-                    <input type="text" name="address" value={formData.address} onChange={handleChange} required />
+                    <input type="text" name="address" value={formData.address || ''} onChange={handleChange} required />
                 </div>
                 <div className="form-group">
-                    <label>Profilna slika:</label>
-                    <input type="file" name="profilePicture" onChange={handleImageChange} />
+                    <label>Slika korisnika:</label>
+                    <input type="file" name="image" onChange={handleImageChange}  />
                 </div>
                 <button type="submit">Ažuriraj profil</button>
             </form>
