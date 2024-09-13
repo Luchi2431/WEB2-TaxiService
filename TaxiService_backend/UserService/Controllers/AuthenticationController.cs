@@ -124,7 +124,63 @@ namespace UserService.Controllers
             }
         }
 
+        #region Verification
+        
 
+
+        [HttpGet("getDrivers")]
+        public async Task<IActionResult> GetDrivers()
+        {
+            try
+            {
+                var drivers = await _authenticationService.GetDriversAsync();
+                return Ok(drivers);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        [HttpPut("approve")]
+        public async Task<IActionResult> ApproveDriver(int id)
+        {
+            try
+            {
+                bool success = await _authenticationService.ApproveDriverAsync(id);
+                if (!success)
+                {
+                    return BadRequest(new { Message = "Vozač nije pronađen, nije vozač ili je već odobren." });
+                }
+
+                return Ok(new { Message = "Vozač uspešno odobren." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        [HttpPut("reject")]
+        public async Task<IActionResult> RejectDriver(int id)
+        {
+            try
+            {
+                bool success = await _authenticationService.RejectDriverAsync(id);
+                if (!success)
+                {
+                    return BadRequest(new { Message = "Vozač nije pronađen, nije vozač ili je već odbijen." });
+                }
+
+                return Ok(new { Message = "Vozač uspešno odbijen." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        #endregion
 
 
     }

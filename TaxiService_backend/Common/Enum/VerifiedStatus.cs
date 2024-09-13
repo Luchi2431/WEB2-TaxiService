@@ -8,8 +8,9 @@ namespace Common
 {
     public enum VerifiedStatus
     {
+        InProgress,
         Verified,
-        Denied,
-        InProgress
+        Denied
+        
     }
 }

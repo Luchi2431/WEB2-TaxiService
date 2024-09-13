@@ -81,6 +81,7 @@ namespace Authentication
 
 
 
+
             // Kreiranje korisnika
             var user = new UserDTO
             {
@@ -317,5 +318,59 @@ namespace Authentication
         }
 
 
+        #region Verification
+
+        //Funkcija za odobravanje vozača
+        public async Task<bool> ApproveDriverAsync(int driverId)
+        {
+            // Pronađi vozača po ID-ju
+            var driver = await _userRepository.GetUserByIdAsync(driverId);
+
+            if (driver == null || driver.UserTypes != UserType.Driver || driver.IsVerified != VerifiedStatus.InProgress)
+            {
+                return false; // Vozač nije pronađen ili nije vozač ili status nije "InProgress"
+            }
+
+            // Ažuriraj status verifikacije vozača
+            driver.IsVerified = VerifiedStatus.Verified; // Verifikovan
+
+            // Sačuvaj promene u bazi podataka
+            ProfileDTO updatedDriver = _userRepository.UpdateUserAsync(driver);
+
+            return true;
+        }
+
+        // Funkcija za odbijanje vozača
+        public async Task<bool> RejectDriverAsync(int driverId)
+        {
+            // Pronađi vozača po ID-ju
+            var driver = await _userRepository.GetUserByIdAsync(driverId);
+
+            if (driver == null || driver.UserTypes != UserType.Driver || driver.IsVerified != VerifiedStatus.InProgress)
+            {
+                return false; // Vozač nije pronađen ili nije vozač ili status nije "InProgress"
+            }
+
+
+            // Ažuriraj status verifikacije vozača
+            driver.IsVerified = VerifiedStatus.Denied; // Odbijen
+
+            // Sačuvaj promene u bazi podataka
+            ProfileDTO updatedDriver = _userRepository.UpdateUserAsync(driver);
+
+            return true;
+        }
+
+        public async Task<List<UserDTO>> GetDriversAsync()
+        {
+            var drivers = await _userRepository.GetUsersByTypeAsync(UserType.Driver);
+
+            // Mapiranje vozača u DTO format
+            var driverDtos = _mapper.Map<List<UserDTO>>(drivers);
+
+            return driverDtos;
+        }
+
+        #endregion
     }
 }

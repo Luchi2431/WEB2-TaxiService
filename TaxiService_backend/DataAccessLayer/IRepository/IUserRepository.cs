@@ -1,4 +1,5 @@
-﻿using DataAccessLayer.DTO;
+﻿using Common;
+using DataAccessLayer.DTO;
 using DataAccessLayer.Models;
 using System;
 using System.Collections.Generic;
@@ -17,5 +18,7 @@ namespace DataAccessLayer.IRepository
         ProfileDTO UpdateUserAsync(User newUser);
 
         User FindUser(string email);
+
+        Task<List<User>> GetUsersByTypeAsync(UserType userType);
     }
 }

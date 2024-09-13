@@ -26,5 +26,11 @@ namespace Authentication.Interface
         Task<ProfileDTO> LoginUser(LoginDTO loginDTO);
 
         Task<ProfileDTO> LoginWithGoogleAsync(string token);
+
+        Task<List<UserDTO>> GetDriversAsync();
+
+        Task<bool> RejectDriverAsync(int driverId);
+
+        Task<bool> ApproveDriverAsync(int driverId);
     }
 }

@@ -95,6 +95,21 @@ const Profile = () => {
         }
     };
 
+
+    const getStatusText = (isVerified) => {
+        switch(isVerified) {
+            case 0:
+                return 'InProgress';
+            case 1:
+                return 'Verified';
+            case 2:
+                return 'Denied';
+            default:
+                return 'Unknown';
+        }
+    };
+
+
     if (!userData) {
         return <p>Učitavanje korisničkih podataka...</p>; // Prikaži poruku dok se podaci učitavaju
     }
@@ -126,6 +141,10 @@ const Profile = () => {
                 <div className="form-group">
                     <label>Adresa:</label>
                     <input type="text" name="address" value={formData.address || ''} onChange={handleChange} required />
+                </div>
+                <div className="form-group">
+                    <label>Status verifikacije:</label>
+                    <p>{getStatusText(userData.isVerified)}</p>
                 </div>
                 <div className="form-group">
                     <label>Slika korisnika:</label>

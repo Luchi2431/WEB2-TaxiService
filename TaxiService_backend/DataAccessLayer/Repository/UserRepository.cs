@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
+using Common;
 using DataAccessLayer.Context;
 using DataAccessLayer.DTO;
 using DataAccessLayer.IRepository;
 using DataAccessLayer.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,7 +54,15 @@ namespace DataAccessLayer.Repository
         public User FindUser(string email)
         {
             return _db.Users.FirstOrDefault(user => user.Email == email);
-   
         }
+
+        public async Task<List<User>> GetUsersByTypeAsync(UserType userType)
+        {
+            return await _db.Users
+                .Where(u => u.UserTypes == userType)
+                .ToListAsync();
+        }
+
+
     }
 }
