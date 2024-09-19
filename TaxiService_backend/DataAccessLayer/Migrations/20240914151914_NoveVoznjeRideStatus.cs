@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DataAccessLayer.Migrations
 {
-    public partial class MyMigration : Migration
+    public partial class NoveVoznjeRideStatus : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -34,9 +34,9 @@ namespace DataAccessLayer.Migrations
                     EndAddress = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     EstimatedPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     EstimatedTime = table.Column<TimeSpan>(type: "time", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false),
+                    EstimatedArrivalTime = table.Column<TimeSpan>(type: "time", nullable: false),
+                    RideStatus = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CompletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Rating = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -59,7 +59,7 @@ namespace DataAccessLayer.Migrations
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserTypes = table.Column<int>(type: "int", nullable: false),
                     ProfilePicture = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    IsVerified = table.Column<bool>(type: "bit", nullable: false)
+                    IsVerified = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {

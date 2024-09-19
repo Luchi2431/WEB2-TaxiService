@@ -1,0 +1,61 @@
+/* NewRidesForDrivers.css */
+.new-rides-container {
+    padding: 20px;
+    background-color: #f4f4f4;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: 20px auto;
+    font-family: Arial, sans-serif;
+}
+
+.new-rides-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.new-rides-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.new-rides-item {
+    background-color: #fff;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.new-rides-button {
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.new-rides-button:hover {
+    background-color: #218838;
+}
+
+.blocked-text {
+    color: #ff0000;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.unblocked-text {
+    color: #28a745;
+    text-align: center;
+    margin-top: 20px;
+}
+

@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessLayer.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240908162602_MyMigration")]
-    partial class MyMigration
+    [Migration("20240914151914_NoveVoznjeRideStatus")]
+    partial class NoveVoznjeRideStatus
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -49,9 +49,6 @@ namespace DataAccessLayer.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -60,6 +57,9 @@ namespace DataAccessLayer.Migrations
 
                     b.Property<string>("EndAddress")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<TimeSpan>("EstimatedArrivalTime")
+                        .HasColumnType("time");
 
                     b.Property<decimal>("EstimatedPrice")
                         .HasColumnType("decimal(18,2)");
@@ -70,11 +70,11 @@ namespace DataAccessLayer.Migrations
                     b.Property<int>("Rating")
                         .HasColumnType("int");
 
+                    b.Property<int>("RideStatus")
+                        .HasColumnType("int");
+
                     b.Property<string>("StartAddress")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -103,8 +103,8 @@ namespace DataAccessLayer.Migrations
                     b.Property<string>("FirstName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsVerified")
-                        .HasColumnType("bit");
+                    b.Property<int>("IsVerified")
+                        .HasColumnType("int");
 
                     b.Property<string>("LastName")
                         .HasColumnType("nvarchar(max)");

@@ -17,9 +17,9 @@ namespace DataAccessLayer.DTO
         public string EndAddress { get; set; }
         public decimal EstimatedPrice { get; set; }
         public TimeSpan EstimatedTime { get; set; }
-        public RideStatus Status { get; set; } // Enum za status vožnje
+        public TimeSpan EstimatedArrivalTime { get; set; }
+        public RideStatus RideStatus { get; set; } // Enum za status vožnje
         public DateTime CreatedAt { get; set; }
-        public DateTime? CompletedAt { get; set; }
         public int Rating { get; set; } // Ocena vozača
     }
 }

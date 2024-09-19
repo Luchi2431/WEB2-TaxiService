@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import User from '../../Models/User';
 import Authentication from '../../Contexts/Authentication';
 import { useContext } from 'react';
+import '../Design/frontpage.css';
 
 // Uvezi useHistory
 // import './Login.css'; // Za stilizaciju (opciono)

@@ -17,6 +17,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Notification.Interface;
+using Notification.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -68,6 +70,8 @@ namespace UserService
 
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IAuthenticationService, AuthenticationService>();
+            services.AddScoped<IRideRepository, RideRepository>();
+            services.AddScoped<IEmailService, EmailService>();
 
             services.AddControllers();
             services.AddSwaggerGen(c =>

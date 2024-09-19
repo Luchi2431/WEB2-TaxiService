@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Authentication from '../../Contexts/Authentication';
+import '../Design/profile.css';
 
 
 

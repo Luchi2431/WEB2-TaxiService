@@ -1,0 +1,58 @@
+/* PreviousRides.css */
+.previous-rides-container {
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    max-width: 800px;
+    margin: 20px auto;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    font-family: 'Arial', sans-serif;
+}
+
+.previous-rides-title {
+    font-size: 26px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.previous-rides-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.previous-rides-item {
+    background-color: #fff;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s;
+}
+
+.previous-rides-item:hover {
+    transform: translateY(-3px);
+}
+
+.previous-rides-info {
+    margin: 0;
+    color: #555;
+}
+
+.loading-message,
+.error-message {
+    text-align: center;
+    font-size: 18px;
+    color: #777;
+    padding: 20px;
+}
+
+.no-rides-message {
+    text-align: center;
+    font-size: 20px;
+    color: #888;
+    padding: 30px;
+    background-color: #f0f0f0;
+    border-radius: 8px;
+}

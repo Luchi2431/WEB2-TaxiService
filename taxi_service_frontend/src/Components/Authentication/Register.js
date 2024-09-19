@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import {GoogleOAuthProvider,GoogleLogin} from '@react-oauth/google';
-//import './Register.css';
+import '../Design/register.css';
+
+
 
 const Register = () => {
     const navigate = useNavigate();
@@ -129,7 +131,7 @@ const Register = () => {
                 </div>
                 <div className="form-group">
                     <label>Tip korisnika:</label>
-                    <select name="userType" value={formData.userType} onChange={handleChange}>
+                    <select name="userTypes" value={formData.userTypes} onChange={handleChange}>
                         <option value="Admin">Admin</option>
                         <option value="User">User</option>
                         <option value="Driver">Driver</option>

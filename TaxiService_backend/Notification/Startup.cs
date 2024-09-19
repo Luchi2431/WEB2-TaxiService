@@ -1,3 +1,4 @@
+using Common;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -7,6 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Notification.Interface;
+using Notification.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,13 +22,19 @@ namespace Notification
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            Console.WriteLine($"Fromwho: {Configuration["EmailSettings:Fromwho"]}");
         }
 
         public IConfiguration Configuration { get; }
+       
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<EmailStrukture>(Configuration.GetSection("EmailSettings"));
+            services.AddScoped<IEmailService, EmailService>();
+            services.AddTransient<IEmailService, EmailService>();
+
 
             services.AddControllers();
             services.AddSwaggerGen(c =>

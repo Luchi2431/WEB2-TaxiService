@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Authentication from '../../Contexts/Authentication';
+import '../Design/verification.css';
 
 const Verification = () => {
     const [drivers, setDrivers] = useState([]);
@@ -71,7 +72,7 @@ const Verification = () => {
         <div className="verification">
             <h2>Verifikacija Vozača</h2>
 
-            <h3>Svi Vozači</h3>
+            
             {drivers.length === 0 ? ( // Proveri da li ima vozača
                 <p>Nema vozača na verifikaciji.</p>
             ) : (

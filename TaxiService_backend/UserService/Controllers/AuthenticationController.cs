@@ -23,6 +23,11 @@ namespace UserService.Controllers
             _authenticationService = authenticationService;
         }
 
+
+        #region Authentification
+
+      
+
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromForm] RegisterDTO registerDto, IFormFile? image = null)
         {
@@ -88,13 +93,16 @@ namespace UserService.Controllers
             }
         }
 
+        #endregion
+
+
 
         [HttpGet("profile")]
         public async Task<IActionResult> GetProfile(int id)
         {
             try
             {
-                ProfileDTO response =  await _authenticationService.GetUserProfileAsync(id);
+                ProfileDTO response = await _authenticationService.GetUserProfileAsync(id);
                 return Ok(response);
 
             }
@@ -106,11 +114,11 @@ namespace UserService.Controllers
 
 
         [HttpPut("profileUpdate")]
-        public async Task<IActionResult> ProfileUpdate([FromForm] ProfileDTO profileDTO,IFormFile? profilePicture = null)
+        public async Task<IActionResult> ProfileUpdate([FromForm] ProfileDTO profileDTO, IFormFile? profilePicture = null)
         {
             try
             {
-              
+
 
                 var updatedUser = await _authenticationService.UpdateUserProfileAsync(profileDTO, profilePicture);
 
@@ -125,7 +133,7 @@ namespace UserService.Controllers
         }
 
         #region Verification
-        
+
 
 
         [HttpGet("getDrivers")]
@@ -181,6 +189,143 @@ namespace UserService.Controllers
         }
 
         #endregion
+
+
+        #region NewRide
+
+        [HttpPost("estimate")]
+        public async Task<IActionResult> EstimateRide(string startAddress, string endAddress)
+        {
+            try
+            {
+                var estimate = await _authenticationService.EstimateRideAsync(startAddress, endAddress);
+                return Ok(estimate);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        // Endpoint to confirm the ride
+        [HttpPost("confirm")]
+        public async Task<IActionResult> ConfirmRide([FromForm] RideDTO rideDto)
+        {
+            try
+            {
+                if (TimeSpan.TryParse(rideDto.EstimatedTime.ToString(), out TimeSpan estimatedTime))
+                {
+                    // Sada možeš da koristiš estimatedTime
+                    rideDto.EstimatedTime = estimatedTime;
+                }
+                else
+                {
+                    // Obradi grešku ako ne možeš da konvertuješ
+                    return BadRequest("Invalid time format.");
+                }
+
+
+
+                var ride = await _authenticationService.ConfirmRideAsync(rideDto);
+                return Ok(new { Message = "Ride confirmed", Ride = ride });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+        #endregion
+
+
+        #region NewDriverRides
+
+        [HttpGet("new-rides")]
+        public async Task<IActionResult> GetNewRides()
+        {
+            try
+            {
+                var newRides = await _authenticationService.GetNewRidesAsync();
+                return Ok(newRides);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        
+
+        [HttpPost("accept")]
+        public async Task<IActionResult> AcceptRide([FromBody] AcceptRideRequestDTO request)
+        {
+            try
+            {
+                var success = await _authenticationService.AcceptRideAsync(request.RideId,request.DriverId);
+                if (success == null)
+                {
+                    return BadRequest(new { Message = "Vožnja nije pronađena ili je već prihvaćena." });
+                }
+
+                return Ok(success);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        #endregion
+
+
+
+        [HttpGet("previousRides")]
+        public async Task<IActionResult> GetPreviousRides(int id)
+        {
+            try
+            {
+                var previousRides = await _authenticationService.GetPreviousRidesAsync(id);
+                return Ok(previousRides);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        [HttpGet("myRides")]
+        public async Task<IActionResult> GetMyRides(int id)
+        {
+            try
+            {
+                var myRides = await _authenticationService.GetMyRidesAsync(id);
+                return Ok(myRides);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        [HttpGet("allRides")]
+        public async Task<IActionResult> GetAllRides()
+        {
+            try
+            {
+                var allRides = await _authenticationService.GetAllRidesAsync();
+                return Ok(allRides);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+
+
+
+
+
+
 
 
     }

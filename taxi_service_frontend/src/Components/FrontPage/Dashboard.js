@@ -8,6 +8,8 @@ import Verification from './Verification';
 import NewRidesForDrivers from './NewRidesForDrivers';
 import AllRides from './AllRides';
 import Authentication from '../../Contexts/Authentication';
+import MyRides from './MyRides';
+import '../Design/dashboard.css';
 
 const Dashboard = () => {
     const ctx = useContext(Authentication);
@@ -23,6 +25,7 @@ const Dashboard = () => {
                             <Route path="profile" element={<Profile />} />
                             <Route path="new-ride" element={<NewRide />} />
                             <Route path="previous-rides" element={<PreviousRides />} />
+                            <Route path="myRides" element={<MyRides/>}/>
                             {currentUserType === 0 ? (
                                 <Route path="verification" element={<Verification />} />
                             ) : (

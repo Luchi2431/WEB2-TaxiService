@@ -1,23 +1,24 @@
 ﻿using Authentication.Interface;
-using DataAccessLayer.DTO;
-using DataAccessLayer.Models;
-using System;
-using System.Threading.Tasks;
+using AutoMapper;
 using Common;
-using System.IO;
-using Microsoft.AspNetCore.Http;
-using DataAccessLayer.IRepository;
-using Google.Apis.Auth;
 using DataAccessLayer.Context;
+using DataAccessLayer.DTO;
+using DataAccessLayer.IRepository;
+using DataAccessLayer.Models;
+using Google.Apis.Auth;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using System.Security.Claims;
+using Notification.Interface;
+using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using AutoMapper;
-using Microsoft.Extensions.Configuration;
-    
+using System.IO;
+using System.Linq;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
+
 namespace Authentication
 {
     public class AuthenticationService : IAuthenticationService
@@ -27,14 +28,18 @@ namespace Authentication
         private readonly string _secretKey;
         private readonly IMapper _mapper;
         private readonly IUserRepository _userRepository;
+        private readonly IRideRepository _rideRepository;
+        private readonly IEmailService _emailService;
         //private readonly IUserService _userService;
         //private readonly INotificationService _notificationService;
 
-        public AuthenticationService(ApplicationDbContext db, IUserRepository userRepository, Microsoft.Extensions.Configuration.IConfiguration configuration, IMapper mapper)
+        public AuthenticationService(ApplicationDbContext db, IEmailService emailService, IUserRepository userRepository, IRideRepository rideRepository, Microsoft.Extensions.Configuration.IConfiguration configuration, IMapper mapper)
         {
             _db = db;
             _userRepository = userRepository;
             _configuration = configuration;
+            _rideRepository = rideRepository;
+            _emailService = emailService;
             _mapper = mapper;
             _secretKey = _configuration["SecretKey"];
         }
@@ -59,7 +64,7 @@ namespace Authentication
             return "/Images/" + uniqueFileName;
         }
 
-       
+
 
 
         public async Task<User> RegisterUserAsync(RegisterDTO registerDto, IFormFile image)
@@ -101,7 +106,7 @@ namespace Authentication
         }
 
 
-        public async Task<User> RegisterOrLoginWithGoogleAsync(string idToken,UserType userType)
+        public async Task<User> RegisterOrLoginWithGoogleAsync(string idToken, UserType userType)
         {
             try
             {
@@ -114,7 +119,7 @@ namespace Authentication
                 var surname = validPayload.FamilyName;
                 var firstname = validPayload.GivenName;
                 var profilePic = validPayload.Picture;
-                
+
 
 
                 // Proveri da li korisnik već postoji u bazi
@@ -189,7 +194,7 @@ namespace Authentication
                     p.Token = tokenString;
                     p.UserType = u.UserTypes;
                     p.ProfilePicture = u.ProfilePicture;
-                    
+
                     return p;
                 }
                 else
@@ -231,13 +236,13 @@ namespace Authentication
                 user.ProfilePicture = imagePath;
             }
 
-           return  _userRepository.UpdateUserAsync(user);
+            return _userRepository.UpdateUserAsync(user);
 
         }
 
 
 
-        public async Task<ProfileDTO> GetUserProfileAsync(int userId) 
+        public async Task<ProfileDTO> GetUserProfileAsync(int userId)
         {
             var user = await _userRepository.GetUserByIdAsync(userId);
             Console.WriteLine(user);
@@ -334,8 +339,26 @@ namespace Authentication
             // Ažuriraj status verifikacije vozača
             driver.IsVerified = VerifiedStatus.Verified; // Verifikovan
 
-            // Sačuvaj promene u bazi podataka
+
+
             ProfileDTO updatedDriver = _userRepository.UpdateUserAsync(driver);
+
+
+
+            string emailContent;
+            emailContent = $"Zdravo {updatedDriver.FirstName} {updatedDriver.LastName},";
+            emailContent += $"Vas nalog je prihvacen.";
+
+            var success = await _emailService.SendMailAsync(new EmailData()
+            {
+                Towho = updatedDriver.Email,
+                Content = emailContent,
+                HtmlContent = true,
+                Subject = "Verifikacija naloga"
+            });
+
+
+            // Sačuvaj promene u bazi podataka
 
             return true;
         }
@@ -358,6 +381,20 @@ namespace Authentication
             // Sačuvaj promene u bazi podataka
             ProfileDTO updatedDriver = _userRepository.UpdateUserAsync(driver);
 
+
+            string emailContent;
+            emailContent = $"Zdravo {updatedDriver.FirstName} {updatedDriver.LastName},";
+            emailContent += $"Vas nalog je blokiran.";
+
+            var success = await _emailService.SendMailAsync(new EmailData()
+            {
+                Towho = updatedDriver.Email,
+                Content = emailContent,
+                HtmlContent = true,
+                Subject = "Verifikacija naloga"
+            });
+
+
             return true;
         }
 
@@ -372,5 +409,107 @@ namespace Authentication
         }
 
         #endregion
+
+
+        #region NewRide
+        public async Task<RideDTO> EstimateRideAsync(string startAddress, string endAddress)
+        {
+            // Random vrednosti za cenu i vreme čekanja vozača
+            Random random = new Random();
+            decimal estimatedPrice = random.Next(500, 2000); // Primer: cena između 500 i 2000 dinara
+            TimeSpan estimatedTime = TimeSpan.FromSeconds(random.Next(5, 20)); // Primer: vreme između 5 i 20 minuta
+
+            // Kreiranje DTO objekta za procenu vožnje
+            var rideEstimate = new RideDTO
+            {
+                StartAddress = startAddress,
+                EndAddress = endAddress,
+                EstimatedPrice = estimatedPrice,
+                EstimatedTime = estimatedTime,
+                RideStatus = RideStatus.Created // Status čeka na potvrdu korisnika
+            };
+
+
+
+            return rideEstimate; // Vraća procenu korisniku
+        }
+
+
+
+        public async Task<Ride> ConfirmRideAsync(RideDTO rideDto)
+        {
+
+            return _rideRepository.AddRide(rideDto);
+        }
+
+        #endregion
+
+        #region NewDriverRides
+
+        public async Task<List<RideDTO>> GetNewRidesAsync()
+        {
+            // Pronađi nove vožnje koje su dostupne za vozače
+            var newRides = await _db.Rides
+                .Where(r => r.DriverId == 0 && r.RideStatus == RideStatus.Created) // Pretpostavljam da imaš neki status za nove vožnje
+                .Select(r => new RideDTO
+                {
+                    Id = r.Id,
+                    StartAddress = r.StartAddress,
+                    EndAddress = r.EndAddress,
+                    EstimatedPrice = r.EstimatedPrice,
+                    EstimatedTime = r.EstimatedTime
+                })
+                .ToListAsync();
+
+            return newRides;
+        }
+
+        public async Task<RideDTO> AcceptRideAsync(int rideId, int driverId)
+        {
+            Random random = new Random();
+            TimeSpan EstimatedArrivalTime = TimeSpan.FromSeconds(random.Next(5, 20));
+
+
+            var ride = await _db.Rides.FindAsync(rideId);
+            if (ride == null || ride.DriverId != 0)
+            {
+                return null; // Vožnja nije pronađena ili je već prihvaćena
+            }
+
+            // Prihvati vožnju (dodeli vozaču)
+            ride.DriverId = driverId;
+            ride.RideStatus = RideStatus.InProgress; // Pretpostavljam da imaš status za prihvaćene vožnje
+            ride.EstimatedArrivalTime = EstimatedArrivalTime;
+
+            return _rideRepository.UpdateRide(ride);
+        }
+
+
+        #endregion
+
+
+        public async Task<List<RideDTO>> GetPreviousRidesAsync(int id)
+        {
+            // Pronađi nove vožnje koje su dostupne za vozače
+            return _rideRepository.GetRidesByUserId(id);
+        }
+
+        public async Task<List<RideDTO>> GetMyRidesAsync(int id)
+        {
+            // Pronađi nove vožnje koje su dostupne za vozače
+            return _rideRepository.GetRidesByUserId(id);
+        }
+        
+
+
+
+        public async Task<List<RideDTO>> GetAllRidesAsync()
+        {
+            // Pronađi nove vožnje koje su dostupne za vozače
+            return _rideRepository.GetAllRides();
+        }
+
+
+
     }
 }

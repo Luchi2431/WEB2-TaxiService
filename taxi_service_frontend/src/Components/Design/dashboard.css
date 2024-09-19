@@ -1,0 +1,48 @@
+/* dashboard.css */
+.dashboard {
+    display: flex;
+    height: 100vh;
+    background-color: #1c1c1c; /* Tamno siva pozadina za glavni deo */
+    color: #e0e0e0; /* Svetlo sivi tekst */
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #333; /* Još tamnija siva za sidebar */
+    padding: 20px;
+}
+
+.sidebar h2 {
+    color: #bfbbbb; /* Beli tekst za naslov */
+    
+}
+
+.sidebar ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.sidebar li {
+    margin: 10px 0;
+}
+
+.sidebar a {
+    color: #e0e0e0;
+    text-decoration: none;
+    font-size: 16px;
+    padding: 10px;
+    display: block;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.sidebar a:hover {
+    background-color: #555; /* Svetlija siva prilikom hover-a */
+}
+
+.dashboard-content {
+    flex-grow: 1;
+    padding: 20px;
+    background-color: #2c2c2c; /* Tamno siva za glavni sadržaj */
+    border-left: 1px solid #444; /* Tanka linija između sidebara i sadržaja */
+}

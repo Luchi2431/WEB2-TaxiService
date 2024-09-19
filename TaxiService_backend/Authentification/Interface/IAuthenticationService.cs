@@ -32,5 +32,19 @@ namespace Authentication.Interface
         Task<bool> RejectDriverAsync(int driverId);
 
         Task<bool> ApproveDriverAsync(int driverId);
+
+        Task<Ride> ConfirmRideAsync(RideDTO rideDto);
+
+        Task<RideDTO> EstimateRideAsync(string startAddress, string endAddress);
+
+        Task<RideDTO> AcceptRideAsync(int rideId,int driverId);
+
+        Task<List<RideDTO>> GetNewRidesAsync();
+
+        Task<List<RideDTO>> GetPreviousRidesAsync(int id);
+
+        Task<List<RideDTO>> GetMyRidesAsync(int id);
+
+        Task<List<RideDTO>> GetAllRidesAsync();
     }
 }
