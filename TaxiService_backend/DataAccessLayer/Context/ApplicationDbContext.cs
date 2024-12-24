@@ -12,7 +12,7 @@ namespace DataAccessLayer.Context
         public DbSet<User> Users { get; set; }
         public DbSet<Ride> Rides { get; set; }
         public DbSet<VerificationRequest> VerificationRequests { get; set; }
-        public DbSet<Notification> Notifications { get; set; }
+        
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

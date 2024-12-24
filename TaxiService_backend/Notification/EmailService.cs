@@ -1,18 +1,10 @@
-﻿using Microsoft.Extensions.Options;
-using NETCore.MailKit.Infrastructure.Internal;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Common;
-using System.Net;
-using System.Net.Mime;
-using Notification.Interface;
-using System.Net.Mail;
+﻿using Common;
+using Microsoft.Extensions.Options;
 using PostmarkDotNet;
+using System;
+using System.Threading.Tasks;
 
-namespace Notification.Service
+namespace Notification
 {
     public class EmailService : IEmailService
     {
@@ -27,6 +19,7 @@ namespace Notification.Service
         {
             try
             {
+                
                 string postmarkServerToken = "1091deca-5f5b-46fa-92e7-04b93cf6764e"; // Replace this with your Postmark server token
                 string fromAddress = "vlatkovic.pr37.2020@uns.ac.rs"; // Change this to your email address
 
@@ -58,5 +51,5 @@ namespace Notification.Service
             return true;
         }
     }
+
 }
- 

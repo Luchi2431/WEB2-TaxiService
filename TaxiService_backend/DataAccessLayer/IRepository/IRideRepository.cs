@@ -17,6 +17,10 @@ namespace DataAccessLayer.IRepository
         List<RideDTO> GetRidesByUserId(int id);
 
         List<RideDTO> GetAllRides();
+
+        Task<Ride> FindRideByIdAsync(int rideId);
+
+        Task<List<Ride>> FindNewRidesAsync();
     }
 
 

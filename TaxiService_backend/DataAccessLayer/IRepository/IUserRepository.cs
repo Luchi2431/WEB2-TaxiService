@@ -19,6 +19,6 @@ namespace DataAccessLayer.IRepository
 
         User FindUser(string email);
 
-        Task<List<User>> GetUsersByTypeAsync(UserType userType);
+        List<UserDTO> GetUsersByTypeAsync(UserType userType);
     }
 }

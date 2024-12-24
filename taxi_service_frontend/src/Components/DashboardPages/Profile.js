@@ -3,6 +3,11 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Authentication from '../../Contexts/Authentication';
 import '../Design/profile.css';
+import AuthenticationService from '../../Service/AuthenticationService';
+import Verification from '../FrontPage/Verification';
+import VerificationService from '../../Service/VerificationService';
+import UserService from '../../Service/UserService';
+
 
 
 
@@ -27,12 +32,7 @@ const Profile = () => {
                     console.error("Korisnik nije prijavljen ili korisnički ID nije dostupan");
                     return;
                 }
-                const response = await axios.get('https://localhost:44310/api/Authentication/profile?id='+ctx.user.Id, {
-                    headers: {
-                        Authorization: `Bearer ${ctx.user.Token}`
-                    }
-                });
-                
+                const response = await UserService.profile(ctx.user.Token,ctx.user.Id)
     
                 const user = response.data;
                 console.log(user);
@@ -48,7 +48,13 @@ const Profile = () => {
                     profilePicture: user.profilePicture || '',
                 });
             } catch (error) {
-                console.error("Greška prilikom dobijanja korisničkih podataka", error.response ? error.response.data : error);
+                if (error.response && error.response.status === 401) {
+                    alert("Token has expired. Redirecting to the front page...");
+                    ctx.onLogout();
+                    navigate('/'); // Navigate to the front page
+                } else {
+                    console.error('Error fetching new rides:', error);
+                }
             }
         };
     
@@ -83,16 +89,17 @@ const Profile = () => {
         console.log([...updatedFormData]);
 
         try {
-            await axios.put('https://localhost:44310/api/Authentication/profileUpdate', updatedFormData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+            await UserService.updateProfile(ctx.user.Token,updatedFormData);
             alert('Profil je uspešno ažuriran!');
             navigate('/dashboard'); // Preusmeri korisnika nakon uspešnog ažuriranja
         } catch (error) {
-            console.error("Greška prilikom ažuriranja profila", error.response ? error.response.data : error);
-            alert("Greška prilikom ažuriranja profila. Pokušajte ponovo.");
+            if (error.response && error.response.status === 401) {
+                alert("Token has expired. Redirecting to the front page...");
+                ctx.onLogout();
+                navigate('/'); // Navigate to the front page
+            } else {
+                console.error('Error fetching new rides:', error);
+               }
         }
     };
 
@@ -110,7 +117,7 @@ const Profile = () => {
         }
     };
 
-
+    console.log(formData.profilePicture);
     if (!userData) {
         return <p>Učitavanje korisničkih podataka...</p>; // Prikaži poruku dok se podaci učitavaju
     }
@@ -118,6 +125,16 @@ const Profile = () => {
     return (
         <div>
             <h2>Profil Korisnika</h2>
+            {formData.profilePicture && (
+                <div className="form-group">
+                <label>Trenutna slika:</label>
+                <img
+                    src={process.env.REACT_APP_IMAGE_URL + formData.profilePicture} // Dodajte osnovni URL ispred relativne putanje
+                    alt="Profilna slika"
+                    style={{ width: '150px', height: '150px', borderRadius: '50%' }}
+                />
+            </div>
+            )}
             <form onSubmit={handleSubmit}>
                 <div className="form-group">
                     <label>Korisničko ime:</label>

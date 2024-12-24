@@ -5,9 +5,13 @@ import { useContext } from 'react';
 import RideContext from '../../Contexts/RideContext';
 import Ride from '../../Models/Ride';
 import '../Design/newridesfordrivers.css';
+import { useNavigate } from 'react-router-dom';
+import RideService from '../../Service/RideService';
+import { useRef } from 'react';
 
 const NewRidesForDrivers = () => {
     const [newRides, setNewRides] = useState([]);
+    const isMounted = useRef(false);
     const ctx = useContext(Authentication);
     const rideCtx = useContext(RideContext);
     const [arrivalCountdown, setArrivalCountdown] = useState(null);
@@ -15,6 +19,9 @@ const NewRidesForDrivers = () => {
     const [rideCompleted, setRideCompleted] = useState(false);
     const [rating, setRating] = useState(0);
     const [blocked, setBlocked] = useState(true);
+    const navigate = useNavigate();
+    
+
 
     useEffect(() => {
         let rideTimer;
@@ -41,28 +48,24 @@ const NewRidesForDrivers = () => {
     useEffect(() => {
         const fetchNewRides = async () => {
             try {
-                const response = await axios.get('https://localhost:44310/api/Authentication/new-rides');
+                const response = await RideService.newRides(ctx.user.Token);
                 setNewRides(response.data);
             } catch (error) {
                 console.error('Error fetching new rides:', error);
             }
         };
 
-        fetchNewRides();
+        if (!isMounted.current) {
+            fetchNewRides();
+            isMounted.current = true;
+        }
+
     }, []);
 
     const handleAcceptRide = async (rideId) => {
         try {
-            const acceptedRideData = await axios.post(`https://localhost:44310/api/Authentication/accept`, {
-                rideId: rideId,
-                driverId: ctx.user.Id
-            }, {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-
+            const acceptedRideData = await RideService.rideAccept(ctx.user.Token,rideId,ctx.user.Id);
+            
             if (acceptedRideData && acceptedRideData.data) {
                 const ride = new Ride(acceptedRideData.data);
                 rideCtx.onRequestRide(ride);
@@ -71,7 +74,13 @@ const NewRidesForDrivers = () => {
                 console.error("Accepted ride data is null or invalid");
             }
         } catch (error) {
-            console.error('Error accepting ride:', error);
+            if (error.response && error.response.status === 401) {
+                alert("Token has expired. Redirecting to the front page...");
+                ctx.onLogout();
+                navigate('/'); // Navigate to the front page
+            } else {
+                console.error('Error fetching new rides:', error);
+            }
         }
     };
 

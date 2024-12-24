@@ -1,0 +1,51 @@
+.sidebar {
+    width: 250px;
+    background-color: #333; /* Tamnija siva boja */
+    padding: 20px;
+}
+
+.sidebar h2 {
+    color: #bfbbbb; /* Svetlo siva boja za naslov */
+}
+
+.sidebar ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.sidebar li {
+    margin: 10px 0;
+}
+
+.sidebar a {
+    color: #e0e0e0;
+    text-decoration: none;
+    font-size: 16px;
+    padding: 10px;
+    display: block;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.sidebar a:hover {
+    background-color: #555; /* Svetlija siva prilikom hover-a */
+}
+
+.sidebar .logout-button {
+    color: #e0e0e0;
+    background-color: #333;
+    text-decoration: none;
+    font-size: 16px;
+    padding: 10px;
+    display: block;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+}
+
+.sidebar .logout-button:hover {
+    background-color: #dc3545; /* Crvena boja prilikom hover-a */
+    color: white;
+}

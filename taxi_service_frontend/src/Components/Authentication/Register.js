@@ -54,14 +54,14 @@ const Register = () => {
         }
 
         try {
-            const response = await axios.post('https://localhost:44310/api/Authentication/register', formDataToSend, {
+            const response = await axios.post(process.env.REACT_APP_AUTHENTICATION_URL+"authentication/register", formDataToSend, {
                 headers: {
                     'Content-Type': 'multipart/form-data', // Uveri se da postavljaš ispravan Content-Type
                 },
             });
             console.log("Odgovor sa servera:", response.data);
-            alert('Registracija uspešna! Molimo sačekajte potvrdu od administratora.');
-            navigate('/dashboard')
+            alert('Registracija uspešna!');
+            navigate('/')
         } catch (error) {
             if (error.response) {
                 console.error("Greška prilikom registracije", error.response.data);
@@ -76,7 +76,7 @@ const Register = () => {
         const selectedOption = document.querySelector('input[name="accType"]:checked').value;
     
         try {
-            const response = await axios.post('https://localhost:44310/api/Authentication/googleRegister', 
+            const response = await axios.post(process.env.REACT_APP_AUTHENTICATION_URL+"authentication/google-register", 
                 {
                     token: credentialResponse.credential, // Ovdje šalješ idToken
                     userType: selectedOption // Ovdje šalješ userType
@@ -87,7 +87,8 @@ const Register = () => {
                     },
                 });
             console.log("Korisnik registrovan putem Google-a:", response.data);
-            navigate('/dashboard');
+            alert('Registracija uspešna!');
+            navigate('/');
         } catch (error) {
             console.error("Greška prilikom registracije putem Google-a", error.response ? error.response.data : error);
         }

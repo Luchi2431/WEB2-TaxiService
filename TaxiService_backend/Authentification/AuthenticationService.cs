@@ -23,19 +23,17 @@ namespace Authentication
 {
     public class AuthenticationService : IAuthenticationService
     {
-        private readonly ApplicationDbContext _db;
+        
         private readonly Microsoft.Extensions.Configuration.IConfiguration _configuration;
         private readonly string _secretKey;
         private readonly IMapper _mapper;
         private readonly IUserRepository _userRepository;
         private readonly IRideRepository _rideRepository;
         private readonly IEmailService _emailService;
-        //private readonly IUserService _userService;
-        //private readonly INotificationService _notificationService;
+        
 
-        public AuthenticationService(ApplicationDbContext db, IEmailService emailService, IUserRepository userRepository, IRideRepository rideRepository, Microsoft.Extensions.Configuration.IConfiguration configuration, IMapper mapper)
+        public AuthenticationService(IEmailService emailService, IUserRepository userRepository, IRideRepository rideRepository, Microsoft.Extensions.Configuration.IConfiguration configuration, IMapper mapper)
         {
-            _db = db;
             _userRepository = userRepository;
             _configuration = configuration;
             _rideRepository = rideRepository;
@@ -65,7 +63,63 @@ namespace Authentication
         }
 
 
+        #region Authentication
 
+        public async Task<ProfileDTO> LoginUser(LoginDTO loginDTO)
+        {
+            try
+            {
+                User u = _userRepository.FindUser(loginDTO.Email);
+                var hashedPassword = Hash.HashPassword(loginDTO.Password);
+                if (u != null)
+                {
+                    if (string.Equals(u.PasswordHash, hashedPassword, StringComparison.Ordinal))
+                    {
+                        List<Claim> claims = new List<Claim>();
+                        if (u.UserTypes == UserType.User)
+                            claims.Add(new Claim("UserType", "User"));
+                        if (u.UserTypes == UserType.Driver)
+                            claims.Add(new Claim("UserType", "Driver"));
+                        if (u.UserTypes == UserType.Admin)
+                            claims.Add(new Claim("UserType", "Admin"));
+
+
+                        SymmetricSecurityKey secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
+
+                        var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+
+                        var tokeOptions = new JwtSecurityToken(
+                            issuer: "http://localhost:44310",
+                            claims: claims,
+                            expires: DateTime.Now.AddMinutes(20),
+                            signingCredentials: signinCredentials
+                        );
+                        string tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
+
+
+                        ProfileDTO p = _mapper.Map<ProfileDTO>(u);
+                        p.Token = tokenString;
+                        p.UserType = u.UserTypes;
+                        p.ProfilePicture = u.ProfilePicture;
+                        return p;
+                    }
+                    else
+                    {
+                        throw new Exception("Neispravna lozinka");
+                    }
+                }
+                else
+                {
+                    throw new Exception("Korisnik nije pronađen");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Možeš dodati logovanje greške ovde
+                Console.WriteLine($"Greška prilikom prijavljivanja: {ex.Message} {ex.StackTrace}");
+                throw new Exception($"Greška prilikom prijavljivanja: {ex.Message} {ex.StackTrace}");
+            }
+        }
 
         public async Task<User> RegisterUserAsync(RegisterDTO registerDto, IFormFile image)
         {
@@ -123,12 +177,12 @@ namespace Authentication
 
 
                 // Proveri da li korisnik već postoji u bazi
-                var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
+                var user = _userRepository.FindUser(email);
 
                 if (user == null)
                 {
                     // Ako korisnik ne postoji, registruj ga
-                    user = new User
+                    var newUser = new UserDTO
                     {
                         Username = fullName,
                         FirstName = firstname,
@@ -140,8 +194,7 @@ namespace Authentication
                         // Dodaj dodatne podatke o korisniku ako je potrebno
                     };
 
-                    _db.Users.Add(user);
-                    await _db.SaveChangesAsync();
+                    return _userRepository.AddUser(newUser);
                 }
 
                 return user; // Vrati korisnika (postojećeg ili novog)
@@ -208,7 +261,11 @@ namespace Authentication
             }
         }
 
+        #endregion
 
+
+
+        #region UserService
         public async Task<ProfileDTO> UpdateUserProfileAsync(ProfileDTO profileDTO, IFormFile? profilePicture)
         {
             // Pronalaženje korisnika na osnovu ID-ja
@@ -266,61 +323,10 @@ namespace Authentication
             };
         }
 
-        public async Task<ProfileDTO> LoginUser(LoginDTO loginDTO)
-        {
-            try
-            {
-                User u = _userRepository.FindUser(loginDTO.Email);
-                var hashedPassword = Hash.HashPassword(loginDTO.Password);
-                if (u != null)
-                {
-                    if (string.Equals(u.PasswordHash, hashedPassword, StringComparison.Ordinal))
-                    {
-                        List<Claim> claims = new List<Claim>();
-                        if (u.UserTypes == UserType.User)
-                            claims.Add(new Claim("UserType", "User"));
-                        if (u.UserTypes == UserType.Driver)
-                            claims.Add(new Claim("UserType", "Driver"));
-                        if (u.UserTypes == UserType.Admin)
-                            claims.Add(new Claim("UserType", "Admin"));
+        #endregion
 
 
-                        SymmetricSecurityKey secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
 
-                        var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
-
-                        var tokeOptions = new JwtSecurityToken(
-                            issuer: "http://localhost:44310",
-                            claims: claims,
-                            expires: DateTime.Now.AddMinutes(20),
-                            signingCredentials: signinCredentials
-                        );
-                        string tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
-
-
-                        ProfileDTO p = _mapper.Map<ProfileDTO>(u);
-                        p.Token = tokenString;
-                        p.UserType = u.UserTypes;
-                        p.ProfilePicture = u.ProfilePicture;
-                        return p;
-                    }
-                    else
-                    {
-                        throw new Exception("Neispravna lozinka");
-                    }
-                }
-                else
-                {
-                    throw new Exception("Korisnik nije pronađen");
-                }
-            }
-            catch (Exception ex)
-            {
-                // Možeš dodati logovanje greške ovde
-                Console.WriteLine($"Greška prilikom prijavljivanja: {ex.Message} {ex.StackTrace}");
-                throw new Exception($"Greška prilikom prijavljivanja: {ex.Message} {ex.StackTrace}");
-            }
-        }
 
 
         #region Verification
@@ -400,12 +406,8 @@ namespace Authentication
 
         public async Task<List<UserDTO>> GetDriversAsync()
         {
-            var drivers = await _userRepository.GetUsersByTypeAsync(UserType.Driver);
-
-            // Mapiranje vozača u DTO format
-            var driverDtos = _mapper.Map<List<UserDTO>>(drivers);
-
-            return driverDtos;
+           return _userRepository.GetUsersByTypeAsync(UserType.Driver);
+ 
         }
 
         #endregion
@@ -448,20 +450,17 @@ namespace Authentication
 
         public async Task<List<RideDTO>> GetNewRidesAsync()
         {
-            // Pronađi nove vožnje koje su dostupne za vozače
-            var newRides = await _db.Rides
-                .Where(r => r.DriverId == 0 && r.RideStatus == RideStatus.Created) // Pretpostavljam da imaš neki status za nove vožnje
-                .Select(r => new RideDTO
-                {
-                    Id = r.Id,
-                    StartAddress = r.StartAddress,
-                    EndAddress = r.EndAddress,
-                    EstimatedPrice = r.EstimatedPrice,
-                    EstimatedTime = r.EstimatedTime
-                })
-                .ToListAsync();
 
-            return newRides;
+            var newRides = await _rideRepository.FindNewRidesAsync();
+
+            return newRides.Select(r => new RideDTO
+            {
+                Id = r.Id,
+                StartAddress = r.StartAddress,
+                EndAddress = r.EndAddress,
+                EstimatedPrice = r.EstimatedPrice,
+                EstimatedTime = r.EstimatedTime
+            }).ToList();
         }
 
         public async Task<RideDTO> AcceptRideAsync(int rideId, int driverId)
@@ -470,7 +469,7 @@ namespace Authentication
             TimeSpan EstimatedArrivalTime = TimeSpan.FromSeconds(random.Next(5, 20));
 
 
-            var ride = await _db.Rides.FindAsync(rideId);
+            var ride = await _rideRepository.FindRideByIdAsync(rideId);
             if (ride == null || ride.DriverId != 0)
             {
                 return null; // Vožnja nije pronađena ili je već prihvaćena
@@ -488,11 +487,16 @@ namespace Authentication
         #endregion
 
 
+      
         public async Task<List<RideDTO>> GetPreviousRidesAsync(int id)
         {
             // Pronađi nove vožnje koje su dostupne za vozače
             return _rideRepository.GetRidesByUserId(id);
         }
+
+        
+
+
 
         public async Task<List<RideDTO>> GetMyRidesAsync(int id)
         {
@@ -500,8 +504,6 @@ namespace Authentication
             return _rideRepository.GetRidesByUserId(id);
         }
         
-
-
 
         public async Task<List<RideDTO>> GetAllRidesAsync()
         {

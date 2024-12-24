@@ -22,9 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Authentification\Authentication.csproj" />
     <ProjectReference Include="..\DataAccessLayer\DataAccessLayer.csproj" />
-    <ProjectReference Include="..\Notification\Notification.csproj" />
     <ProjectReference Include="..\TaxiService_backend\TaxiService_backend.csproj" />
   </ItemGroup>
 

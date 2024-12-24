@@ -1,8 +1,8 @@
-// components/PreviousRides.js
 import React, { useState, useEffect, useContext } from 'react';
-import axios from 'axios';
 import Authentication from '../../Contexts/Authentication';
 import '../Design/myrides.css';
+import { useNavigate } from 'react-router-dom';
+import RideService from '../../Service/RideService';
 
 const MyRides = () => {
   const [myRides, setMyRides] = useState([]);
@@ -10,22 +10,23 @@ const MyRides = () => {
   const [error, setError] = useState(null);
 
   const ctx = useContext(Authentication);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    
-  const fetchMyRides = async () => {
-    try {
-      const response = await axios.get('https://localhost:44310/api/Authentication/myRides?id='+ctx.user.Id, {
-        headers: {
-          Authorization: `Bearer ${ctx.user.Token}`
-        },
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching my rides', error);
-      throw error;
-    }
-  };
+    const fetchMyRides = async () => {
+      try {
+        const response = await RideService.myRides(ctx.user.Token, ctx.user.Id);
+        return response.data;
+      } catch (error) {
+        if (error.response && error.response.status === 401) {
+          alert("Token has expired. Redirecting to the front page...");
+          ctx.onLogout();
+          navigate('/'); // Navigate to the front page
+        } else {
+          console.error('Error fetching new rides:', error);
+        }
+      }
+    };
 
     const getMyRides = async () => {
       try {
@@ -42,20 +43,19 @@ const MyRides = () => {
     getMyRides();
   }, []);
 
-
   if (loading) return <div>Loading rides...</div>;
   if (error) return <div>{error}</div>;
 
   return (
-    <div>
+    <div className="my-rides-container">
       <h2>My Rides</h2>
       {myRides.length === 0 ? (
         <p>No rides found.</p>
       ) : (
-        <ul>
+        <ul className="rides-list">
           {myRides.map((ride) => (
-            <li key={ride.id}>
-              <p>From: {ride.startAdress} - To: {ride.endAdress}</p>
+            <li key={ride.id} className="ride-item">
+              <p>From: {ride.startAddress} - To: {ride.endAddress}</p>
               <p>Price: {ride.estimatedPrice}</p>
               <p>Date: {new Date(ride.createdAt).toLocaleDateString()}</p>
             </li>
@@ -66,4 +66,4 @@ const MyRides = () => {
   );
 };
 
-export default MyRides;
+export default MyRides;

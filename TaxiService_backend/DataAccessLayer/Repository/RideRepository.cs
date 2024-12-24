@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
+using Common;
 using DataAccessLayer.Context;
 using DataAccessLayer.DTO;
 using DataAccessLayer.IRepository;
 using DataAccessLayer.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,7 +45,12 @@ namespace DataAccessLayer.Repository
                                                //narocito ako se auto generise ID
         }
 
-       
+
+        public async Task<Ride> FindRideByIdAsync(int rideId)
+        {
+            return await _db.Rides.FindAsync(rideId);
+        }
+
 
         public List<RideDTO> GetRidesByUserId(int id)
         {
@@ -57,6 +64,13 @@ namespace DataAccessLayer.Repository
                     EstimatedTime = r.EstimatedTime
                 })
                 .ToList();
+        }
+
+        public async Task<List<Ride>> FindNewRidesAsync()
+        {
+            return await _db.Rides
+                .Where(r => r.DriverId == 0 && r.RideStatus == RideStatus.Created)
+                .ToListAsync();
         }
 
         public List<RideDTO> GetAllRides()

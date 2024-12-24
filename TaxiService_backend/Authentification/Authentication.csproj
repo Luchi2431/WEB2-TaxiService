@@ -25,7 +25,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
     <ProjectReference Include="..\DataAccessLayer\DataAccessLayer.csproj" />
-    <ProjectReference Include="..\Notification\Notification.csproj" />
   </ItemGroup>
 
 </Project>

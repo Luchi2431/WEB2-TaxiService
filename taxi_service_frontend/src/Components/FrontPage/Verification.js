@@ -3,51 +3,62 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Authentication from '../../Contexts/Authentication';
 import '../Design/verification.css';
+import VerificationService from '../../Service/VerificationService';
+import RideService from '../../Service/RideService';
+import UserService from '../../Service/UserService';
+import { useRef } from 'react';
 
 const Verification = () => {
     const [drivers, setDrivers] = useState([]);
     const navigate = useNavigate();
     const ctx = useContext(Authentication);
+    const isMounted = useRef(false);
 
     const currentUserType = ctx.user.UserType; // Dohvati UserType iz konteksta
 
     useEffect(() => {
         const fetchDrivers = async () => {
             try {
-                const response = await axios.get('https://localhost:44310/api/Authentication/getDrivers?id='+ctx.user.Id, {
-                    headers: {
-                        Authorization: `Bearer ${ctx.user.Token}`
-                    }
-                });
+                const response = await UserService.getDrivers(ctx.user.Token,ctx.user.Id);
                 console.log('Fetched drivers:', response.data);
                 const filteredDrivers = response.data // Filtriraj samo vozače
                 setDrivers(filteredDrivers);
             } catch (error) {
-                console.error('Error fetching drivers:', error);
+                if (error.response && error.response.status === 401) {
+                    alert("Token has expired. Redirecting to the front page...");
+                    ctx.onLogout();
+                    navigate('/'); // Navigate to the front page
+                } else {
+                    console.error('Error fetching new rides:', error);
+                }
             }
         };
-
-        fetchDrivers();
+        if (!isMounted.current) {
+            fetchDrivers();
+            isMounted.current = true;
+        }
     }, [navigate, currentUserType]);
 
         // Funkcije za odobravanje i odbacivanje vozača
         const handleApprove = async (id) => {
             try {
-                await axios.put(`https://localhost:44310/api/Authentication/approve?id=${id}`, {}, {
-                    headers: { Authorization: `Bearer ${ctx.user.Token}` }
-                });
-                setDrivers(drivers.map(driver => driver.id === id ? { ...driver, isVerified: 'Verified' } : driver));
+                await VerificationService.approve(ctx.user.Token,id);
+                setDrivers(drivers.map(driver => driver.id === id ? { ...driver, isVerified: 1 } : driver));
             } catch (error) {
-                console.error('Error approving driver:', error);
+                if (error.response && error.response.status === 401) {
+                    alert("Token has expired. Redirecting to the front page...");
+                    ctx.onLogout();
+                    navigate('/'); // Navigate to the front page
+                } else {
+                    console.error('Error fetching new rides:', error);
+                }
             }
         };
 
         const handleReject = async (id) => {
             try {
-                await axios.put(`https://localhost:44310/api/Authentication/reject?id=${id}`, {}, {
-                    headers: { Authorization: `Bearer ${ctx.user.Token}` }
-                });
-                setDrivers(drivers.map(driver => driver.id === id ? { ...driver, isVerified: 'Denied' } : driver));
+                await VerificationService.reject(ctx.user.Token,id);
+                setDrivers(drivers.map(driver => driver.id === id ? { ...driver, isVerified: 2 } : driver));
             } catch (error) {
                 console.error('Error rejecting driver:', error);
             }

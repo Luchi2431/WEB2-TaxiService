@@ -56,11 +56,11 @@ namespace DataAccessLayer.Repository
             return _db.Users.FirstOrDefault(user => user.Email == email);
         }
 
-        public async Task<List<User>> GetUsersByTypeAsync(UserType userType)
+        public List<UserDTO> GetUsersByTypeAsync(UserType userType)
         {
-            return await _db.Users
+            return  _mapper.Map<List<UserDTO>>(_db.Users
                 .Where(u => u.UserTypes == userType)
-                .ToListAsync();
+                .ToList());
         }
 
 

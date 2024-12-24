@@ -4,6 +4,8 @@ import Authentication from '../../Contexts/Authentication';
 import { useContext } from 'react';
 import RideContext from '../../Contexts/RideContext';
 import '../Design/newride.css';
+import { useNavigate } from 'react-router-dom';
+import RideService from '../../Service/RideService';
 
 const NewRide = () => {
     const [startAddress, setStartAddress] = useState('');
@@ -11,6 +13,7 @@ const NewRide = () => {
     const [priceEstimate, setPriceEstimate] = useState(null);
     const [Estimatedtime, setWaitTimeEstimate] = useState(null);
     const [confirmed, setConfirmed] = useState(false);
+    const navigate = useNavigate();
     const ctx = useContext(Authentication);
     const rideCtx = useContext(RideContext);
     const [arrivalCountdown, setArrivalCountdown] = useState(null);
@@ -67,18 +70,25 @@ const NewRide = () => {
 
     const handleOrderRide = async () => {
         try {
-            const response = await axios.post('https://localhost:44310/api/Authentication/estimate', { startAddress, endAddress });
+            const response = await RideService.estimate(ctx.user.Token,startAddress,endAddress);
             const price = response.data.estimatedPrice;
             const EstimatedTime = response.data.estimatedTime;
             setPriceEstimate(price);
             setWaitTimeEstimate(EstimatedTime);
         } catch (error) {
-            console.error('Error while estimating ride:', error);
+            if (error.response && error.response.status === 401) {
+                alert("Token has expired. Redirecting to the front page...");
+                ctx.onLogout();
+                navigate('/'); // Navigate to the front page
+            } else {
+                console.error('Error fetching new rides:', error);
+               }
         }
     };
 
     const handleConfirmRide = async () => {
         try {
+            
             const timeSpan = `${Estimatedtime?.days || 0}.${Estimatedtime?.hours || 0}:${Estimatedtime?.minutes || 0}:${Estimatedtime?.seconds || 0}`; // Check for existence
             const formData = {
                 userId: ctx.user.Id,
@@ -94,14 +104,16 @@ const NewRide = () => {
             }
 
             console.log('FormData before sending:', formData);
-            await axios.post('https://localhost:44310/api/Authentication/confirm', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+            await RideService.confirm(ctx.user.Token,formData);
             setConfirmed(true);
         } catch (error) {
-            console.error('Error while confirming ride:', error);
+            if (error.response && error.response.status === 401) {
+                alert("Token has expired. Redirecting to the front page...");
+                ctx.onLogout();
+                navigate('/'); // Navigate to the front page
+            } else {
+                console.error('Error fetching new rides:', error);
+               }
         }
     };
 

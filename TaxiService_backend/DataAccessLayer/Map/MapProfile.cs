@@ -13,7 +13,7 @@ namespace DataAccessLayer.Map
     {
         public MapProfile()
         {
-            CreateMap<Notification, NotificationDTO>().ReverseMap();
+            
             CreateMap<Ride, RideDTO>().ReverseMap();
             CreateMap<User, UserDTO>().ReverseMap();      
             CreateMap<User, ProfileDTO>().ForMember(x => x.Token, opt => opt.Ignore()).ForMember(x => x.UserType, opt => opt.Ignore()).ForMember(x => x.ProfilePicture, opt => opt.Ignore()).ReverseMap();
